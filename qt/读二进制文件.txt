@@ -1,0 +1,111 @@
+#include <QFile>
+
+/*
+
+virtual bool
+seek(qint64 pos)
+
+virtual qint64
+pos() const
+
+
+*/
+size_t readUploadFile(
+ char *buffer,
+ size_t size,
+ size_t nitems,
+ void *instream)
+{
+ QDataStream* dataStream = static_cast<QDataStream*>(instream);
+ qint64 pos = dataStream->device()->pos();
+ if(!dataStream->atEnd())
+ {
+  int readSize = dataStream->readRawData(buffer, size * nitems);
+  if(-1 == readSize)
+  {
+   return 0;
+  }
+  return readSize;
+ }
+ return 0;
+}
+
+int main(int argc, char *argv[])
+{
+    QFile file("c://data");
+    if (!file.open(QIODevice::ReadOnly))
+        return 1;
+    QDataStream in(&file);    // read the data serialized from the file
+
+    char buffer[1024];
+    memset(buffer, 0, 1024);
+    size_t size = 1;
+    size_t ntimes = 1024;
+    //readUploadFile(buffer, size, ntimes, &in);
+    in.device()->seek(1024);
+    readUploadFile(buffer, size, ntimes, &in);
+    readUploadFile(buffer, size, ntimes, &in);
+
+    return 0;
+}
+
+
+std::once_flag _flag;
+std::call_once(_flag, createInstance);
+
+/////////////////////
+#include <QFile>
+#include <mutex>
+
+std::once_flag _flag;
+
+static void ddxc(void *instream, qint64 pos)
+{
+     QDataStream* dataStream = static_cast<QDataStream*>(instream);
+     dataStream->device()->seek(pos);
+}
+
+size_t readUploadFile(
+ char *buffer,
+ size_t size,
+ size_t nitems,
+ void *instream)
+{
+
+ QDataStream* dataStream = static_cast<QDataStream*>(instream);
+ std::call_once(_flag, ddxc, dataStream, 1024);
+ qint64 pos = dataStream->device()->pos();
+ if(!dataStream->atEnd())
+ {
+  int readSize = dataStream->readRawData(buffer, size * nitems);
+  if(-1 == readSize)
+  {
+   return 0;
+  }
+  return readSize;
+ }
+ return 0;
+}
+
+int main(int argc, char *argv[])
+{
+    QApplication a(argc, argv);
+    Widget w;
+    w.show();
+
+    QFile file("c://data");
+    if (!file.open(QIODevice::ReadOnly))
+        return 1;
+    QDataStream in(&file);    // read the data serialized from the file
+
+    char buffer[1024];
+    memset(buffer, 0, 1024);
+    size_t size = 1;
+    size_t ntimes = 1024;
+    //readUploadFile(buffer, size, ntimes, &in);
+    //in.device()->seek(1024);
+    readUploadFile(buffer, size, ntimes, &in);
+    readUploadFile(buffer, size, ntimes, &in);
+
+    return a.exec();
+}
