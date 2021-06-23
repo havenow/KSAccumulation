@@ -1,0 +1,92 @@
+
+在项止管理文件（.pro）中，增加数据库模块
+QT       += sql
+
+
+//--------------查看Qt对数据库的驱动的类型的支持
+#include <QSqlDatabase>
+#include <QtDebug>
+
+    QStringList drivers = QSqlDatabase::drivers();//获取到qt中所支持的数据库驱动类型
+    foreach(QString driver, drivers)
+    {
+        qDebug() << driver;
+    }
+	
+输出驱动类型的结果：
+"QSQLITE"
+"QODBC"
+"QODBC3"
+"QPSQL"
+"QPSQL7"
+	
+	
+//--------------连接打开数据库
+#include <QSqlDatabase>
+#include <QSqlQuery>
+#include <QSqlError>
+#include <QtDebug>
+
+QSqlDatabase db;
+
+    db = QSqlDatabase::addDatabase("QSQLITE");//根据数据库类型，获取数据库对象并连接，QSQLITE连接的数据库是sqlite3
+    db.setDatabaseName("test.db");//设置连接数据库名字
+    if(!db.open())//打开连接的数据库
+    {
+        qDebug() << "Error failed to open" << db.lastError();
+    }
+    else
+    {
+        qDebug() << "open sucess";
+    }
+	
+
+//--------------创建表
+	对于数据库中的表，值需要创建一次，其他操作是可以重复的
+	
+	QSqlQuery query;
+    QString sqlCreate = QString("create table staff(id integer primary key autoincrement,"
+                                "name varchar(20),"
+                                "age int);");
+    query.exec(sqlCreate);
+	
+//--------------插入
+    QString sqlInsert = QString("insert into staff(name,age) values('张三',20);");
+    if(!query.exec(sqlInsert))
+    {
+        qDebug() << "insert data error" << db.lastError();
+    }
+
+//--------------查询
+    QString sqlSelect = QString("select * from staff;");
+    if(!query.exec(sqlSelect))
+    {
+        qDebug() << "select data error" << db.lastError();
+    }
+    else
+    {
+        while(query.next())
+        {
+            qDebug() << query.value("name").toString();
+            qDebug() << query.value("age").toInt();
+        }
+    }
+
+//--------------删除
+    QString sqlDelete = QString("delete from staff where id = 1;");
+    if(!query.exec(sqlDelete))
+    {
+        qDebug() << "delete data error" << db.lastError();
+    }
+	
+//--------------更新
+    QString sqlUpdate = QString("update staff set name = '李四' where id = 2;");
+    if(!query.exec(sqlUpdate))
+    {
+        qDebug() << "update data error" << db.lastError();
+    }
+	
+
+//--------------数据库图形工具使用--SQLite Expert Professional 5	
+	
+	
