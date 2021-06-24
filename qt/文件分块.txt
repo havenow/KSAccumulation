@@ -1,0 +1,35 @@
+//临时：将m_uploadInf.strFilePath生成m_blockSum各子文件
+    /*QFile file(m_uploadInf.strFilePath);
+    if (file.open(QIODevice::ReadOnly))
+    {
+     for (int i = 1; i <= m_blockSum; i++)
+     {
+      QDataStream in(&file);
+      int size = m_blockSize;
+      if (i == m_blockSum)
+      {
+       size = filesize % m_blockSize;
+      }
+      if (size == 0)
+       break;
+      char* buffer = (char*)malloc(size);
+      int readSize = in.readRawData(buffer, size);
+
+      QString blockFile = m_uploadInf.strFilePath;
+      blockFile.append(".");
+      blockFile.append(QString::number(i));
+
+      QFile fileBlock(blockFile);
+      if (fileBlock.open(QIODevice::WriteOnly))
+      {
+       QDataStream out(&fileBlock);
+       out.writeRawData(buffer, size);
+       fileBlock.close();
+      }
+
+      if (buffer)
+       free(buffer);
+     }
+
+     file.close();
+    }*/
