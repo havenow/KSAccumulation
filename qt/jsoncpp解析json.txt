@@ -1,0 +1,95 @@
+﻿json数据
+{
+	"method":"PUT",
+	"request":{
+		"body_type":"file",
+		"headers":{
+			"Content-Type":"application/octet-stream",
+			"Expires":"1624710812"
+		}
+	},
+	"response":{
+		"expect_code":[
+		200
+	],
+	"arg_etag":"header.ETag"
+	},
+	"result":"ok",
+	"url":"http://......."
+}
+
+
+
+QByteArray response
+QString tttt = QString::fromUtf8(response);//这样可以在vs中查看json的数据
+QMap<QString, QString> headers;	//block.headers
+
+try
+	{
+
+		Json::Value root;
+		if (!Json::Reader().parse(response.data(), root))
+		{
+			Q_ASSERT(!"univ_request json error!");
+		}
+
+		result = QComm::jsonObject2String(root, "result");
+		AsynUploadeResultCode upCode = m_asynUploaderAuxiliaryTool.AdapterUploadCode(result);
+		if (upCode == Upload_FileNameConflict || upCode == Upload_Exist)
+		{
+
+		}
+
+		if (upCode != Upload_Ok)
+		{
+			if (Upload_Fail == upCode)
+				;
+			else
+				;
+
+			m_error = m_asynUploaderAuxiliaryTool.parseErrorMessage(root);
+		}
+
+		blockInfo& block = m_uploadBlockData.getCurrentBlock();
+
+		QString method = QComm::jsonObject2String(root, "method");
+		QString url = QComm::jsonObject2String(root, "url");
+
+		Json::Value request = root.get("request", Json::nullValue);
+		QString body_type = QComm::jsonObject2String(request, "body_type");
+		//QString headers = QComm::jsonObject2String(request, "headers");//需要遍历
+
+		Json::Value headers = request.get("headers", Json::nullValue);
+		Json::Value::Members mem = headers.getMemberNames();
+		for (auto iter = mem.begin(); iter != mem.end(); iter++)
+		{
+			QString name = QString::fromUtf8((*iter).c_str());
+			QString value = QString::fromUtf8(headers[*iter].asString().c_str());
+			block.headers[name] = value;
+		}
+
+		Json::Value headersNeeds = request.get("headers", Json::nullValue);
+		QString contentType = QComm::jsonObject2String(headersNeeds, "Content-Type"); 
+		QString expires = QComm::jsonObject2String(headersNeeds, "Expires");
+		Json::Value response = root.get("response", Json::nullValue);
+		Json::Value expect_code = root.get("expect_code", Json::nullValue);
+		//if (!expect_code.isObject())
+ 		QString arg_etag = QComm::jsonObject2String(response, "arg_etag");
+
+		Json::Value val_array = response["expect_code"];
+		int iSize = val_array.size();
+		//if (!val_array.isArray())
+		int ret = 66;
+		for (int nIndex = 0; nIndex < iSize; ++nIndex)
+		{
+			ret = (val_array[nIndex]).asInt();
+		}
+
+		m_uploadBlockData.arg_etag = arg_etag;
+		block.url = url;
+
+	}
+	catch (...)
+	{
+		Q_ASSERT(!"json error");
+	}
